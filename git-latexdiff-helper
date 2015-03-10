@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# This tool is written by Richard Darst and released under the Gnu
+# General Public License version 2 or later.
+
+DEFAULT_LATEX=pdflatex
+DEFAULT_PDFVIEWER=evince
+
+set -e
+[ ! -z "$V" ] && set -x
+[ ! -z "$V" ] && env
+[ ! -z "$V" ] && pwd
+[ ! -z "$V" ] && echo "$@"
+
+# General note:
+#  ${NAME:-expansions} uses expansion as a default if NAME is empty
+
+
+
+LATEX=${LATEX:-$DEFAULT_LATEX}
+
+if [ ! -f "$1" -o ! -f "$2" ] ; then
+    echo "Input files: $1, $2"
+    echo "Input files are not found.  Are you running properly?"
+    echo ""
+    echo "Usage:"
+    echo "  git config --global difftool.latexdiff.cmd '$0 \"\$LOCAL\" \"\$REMOTE\"'"
+    echo "  git config --global alias.latexdiff \"difftool -t latexdiff\""
+    echo "  git latexdiff [V1..V2]  filename.tex"
+    echo "  Must be run with only FILE.tex, it obviously doesn't work on non-tex files."
+    echo ""
+    echo "Environment variables for customization (OUTPUT=x.pdf git latexdiff ...):"
+    echo "  OUTPUT: filename to write to"
+    echo "  PDFVIEWER: PDF viewer to launch"
+    echo "  LATEX: The latex compiler, latex or pdflatex"
+    echo "  LDOPTS: Command line options to latexdiff"
+    #echo "  V: Verbose mode, set to anything for level1, V=2 for full output."
+fi
+
+# This is based on
+#  http://tex.stackexchange.com/questions/1325/using-latexdiff-with-git,
+#  with many more improvements.
+
+TMPDIR=$(mktemp -d tmp.git-latexdiff.XXXXXXXX)
+#echo $TMPDIR
+
+latexdiff $LDOPTS "$1" "$2" > $TMPDIR/diff.tex 2>/dev/null
+
+# chdir to the directory we were in when we ran the git latexdiff command
+cd "$GIT_PREFIX"
+OLDPWD="`pwd`"
+
+# All the miscelaneous text .aux, etc, files will go into here - our
+# temporary directory, to not clutter our working directory
+export TEXMFOUTPUT=$TMPDIR
+
+# We have to put the actual compilation commands in a function in
+# order to do conditional redirection.  Bash doesn't have a better
+# means of doing this.
+_runlatex () {
+    echo "running"
+    echo $LATEX
+  $LATEX -interaction nonstopmode -output-directory $TMPDIR $TMPDIR/diff.tex || true
+  # Run bibtex + latex again if we have the \bibliography command.
+  if grep -q '\\bibliography[^a-zA-Z]' $TMPDIR/diff.tex ; then
+      bibtex $TMPDIR/diff
+      $LATEX -interaction nonstopmode -output-directory \
+            $TMPDIR $TMPDIR/diff.tex || true
+  fi
+  $LATEX -interaction nonstopmode -output-directory $TMPDIR $TMPDIR/diff.tex \
+   || true
+  echo "done"
+}
+
+# Either run without redirection if $V==2 or else redirect everything away.
+if [ "$V" = 2 ] ; then   _runlatex
+else                     _runlatex &> /dev/null
+fi
+
+# Copy output back to where it belongs.
+cd "$OLDPWD"
+OUTPUT=${OUTPUT:-diff-`basename $2`.pdf}
+cp $TMPDIR/diff.pdf "$OUTPUT"
+
+echo "Result is in $OUTPUT"
+[ ! -z "$V" ] && echo "  --> in `pwd`"
+if [ ! -z "$DISPLAY" ] ; then
+    PDFVIEWER=${PDFVIEWER:-$DEFAULT_PDFVIEWER}
+    "$PDFVIEWER" "$OUTPUT" &> /dev/null
+fi
+rm -rf "$TMPDIR"
