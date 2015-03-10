@@ -36,12 +36,14 @@ latexdiff ...``.
 * ``V=``: set to any value to enable verbose mode.  Set to "2" to also
   display output of compiling LaTeX.
 * ``LATEX=``: LaTeX program to run (default: ``pdflatex``)
+* ``LATEXDIFF=``: set path to latexdiff
 * ``TMPDIR=``: temporary directory for compiling the latex
-* ``LDOPTS=``: Options to ``latexdiff`` itself.
+* ``LDOPTS=``: options to ``latexdiff`` itself.
 * ``PDFVIEWER=``: PDF viewer to run (default: evince)
 
 
 Steps taken, and cases handled, by this helper:
+
 * Diffs two versions and puts them in a temporary directory
 * Runs BibTeX if \bibliography command is detected.
 * Uses currently checked out version of figures
@@ -63,7 +65,8 @@ This depends on the latexdiff perl script, which you must install
 yourself separately:
   http://www.ctan.org/tex-archive/support/latexdiff/
 This is in various package repositories, for example is in Debian in
-the ``latexdiff`` package.
+the ``latexdiff`` package.  Unfortunately, I can't help in installing
+on other platforms.  One report says it is in macports.
 
 
 
@@ -75,7 +78,7 @@ second ``git config`` command below::
 
 Set ``git-latexdiff-helper`` executable::
 
-    ``chmod a+x git-latexdiff-helper``
+    chmod a+x git-latexdiff-helper
 
 Set your git config::
 
@@ -88,6 +91,9 @@ LaTeX command.
 
 Other resources
 ===============
+
+The ``latexdiff`` main page is:
+http://www.ctan.org/tex-archive/support/latexdiff/
 
 This formed the basis for this tool:
 
