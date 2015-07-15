@@ -8,6 +8,7 @@ DEFAULT_LATEXDIFF=latexdiff
 DEFAULT_PDFVIEWER=evince
 
 set -e
+[ ! -z "$GLD_CONT" ] && set +e  # do not stop on errors
 [ ! -z "$V" ] && set -x
 [ ! -z "$V" ] && env
 [ ! -z "$V" ] && pwd
@@ -36,7 +37,9 @@ if [ ! -f "$1" -o ! -f "$2" ] ; then
     echo "  PDFVIEWER: PDF viewer to launch"
     echo "  LATEX: The latex compiler, latex or pdflatex"
     echo "  LDOPTS: Command line options to latexdiff"
-    #echo "  V: Verbose mode, set to anything for level1, V=2 for full output."
+    echo "  V: Verbose mode, set to anything for level1, V=2 for full output."
+    echo "  GLD_CONT: Do not stop on errors (don't \"set -e\" in bash)."
+    echo "            Sometimes useful when latex or bibtex has an error."
 fi
 
 # This is based on
