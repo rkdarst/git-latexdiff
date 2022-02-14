@@ -15,7 +15,7 @@ subcommand in ``git``.
 Usage
 =====
 
-For installation, see below.
+For installation, see `section below <https://github.com/rkdarst/git-latexdiff#installation-and-dependencies>`__.
 
 * Enter the ``git`` repository
 
